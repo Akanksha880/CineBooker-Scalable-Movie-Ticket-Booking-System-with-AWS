@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Tickets - CineBooker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .booking-container {
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 30px;
+      background: rgba(20, 20, 20, 0.85);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .movie-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-item {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    .info-label {
+      color: #888;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .info-value {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .screen {
+      text-align: center;
+      margin-bottom: 40px;
+      color: #888;
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+
+    .seats-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 8px;
+      margin-bottom: 30px;
+      padding: 0 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .seat {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #888;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+      font-size: 11px;
+    }
+
+    .seat:hover {
+      border-color: #e50914;
+      background: rgba(229, 9, 20, 0.2);
+    }
+
+    .seat.selected {
+      background: #e50914;
+      border-color: #e50914;
+      color: #fff;
+    }
+
+    .seat.booked {
+      background: #333;
+      border-color: #555;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .seat-legend {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #b3b3b3;
+    }
+
+    .legend-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      border: 2px solid #888;
+    }
+
+    .legend-box.selected {
+      background: #e50914;
+      border-color: #e50914;
+    }
+
+    .legend-box.booked {
+      background: #333;
+      border-color: #555;
+    }
+
+    .booking-summary {
+      background: rgba(229, 9, 20, 0.1);
+      border: 1px solid #e50914;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .summary-text {
+      color: #b3b3b3;
+      margin-bottom: 10px;
+    }
+
+    .summary-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e50914;
+    }
+
+    .booking-form {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .booking-form input {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .booking-form button {
+      flex: 1;
+      min-width: 150px;
+    }
+  </style>
+</head>
+<body>
+<div class="booking-container">
+  <h2 style="text-align: center; margin-bottom: 30px;">Select Your Seats</h2>
+
+  <div class="movie-info">
+    <div class="info-item">
+      <div class="info-label">Movie</div>
+      <div class="info-value" id="movieName">RRR</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Theater</div>
+      <div class="info-value" id="theaterName">PVR Cinemas</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Price/Seat</div>
+      <div class="info-value" id="pricePerSeat">₹200</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Selected Seats</div>
+      <div class="info-value" id="selectedCount">0</div>
+    </div>
+  </div>
+
+  <div class="screen">
+    🎬 SCREEN 🎬
+  </div>
+
+  <div class="seat-legend">
+    <div class="legend-item">
+      <div class="legend-box"></div>
+      <span>Available</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box selected"></div>
+      <span>Selected</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box booked"></div>
+      <span>Booked</span>
+    </div>
+  </div>
+
+  <div class="seats-grid" id="seatsGrid"></div>
+
+  <div class="booking-summary">
+    <div class="summary-text">Total Price:</div>
+    <div class="summary-value">₹<span id="totalPrice">0</span></div>
+  </div>
+
+  <form method="post" action="/tickets" class="booking-form">
+    <input type="hidden" name="movie" id="movieInput" value="RRR">
+    <input type="hidden" name="theater" id="theaterInput" value="PVR Cinemas">
+    <input type="hidden" name="price" id="priceInput" value="200">
+    <input type="hidden" name="seats" id="seatsInput" value="">
+    <button type="submit">Confirm Booking</button>
+  </form>
+</div>
+
+<script>
+  const rows = 10;
+  const seatsPerRow = 12;
+  const pricePerSeat = 200;
+  let selectedSeats = [];
+  
+  // Get booked seats from server
+  const bookedSeats = [
+    {%- for seat in booked_seats -%}
+      {{- seat -}}{%- if not loop.last -%},{%- endif -%}
+    {%- endfor -%}
+  ].map(s => {
+    // Convert seat codes like "A1", "A2" to seat numbers
+    if (typeof s === 'string' && s.match(/^[A-J]\d+$/)) {
+      const row = s.charCodeAt(0) - 64;
+      const col = parseInt(s.substring(1));
+      return (row - 1) * 12 + col;
+    }
+    return parseInt(s);
+  }).filter(s => !isNaN(s));
+
+  // Get URL parameters
+  const params = new URLSearchParams(window.location.search);
+  const movie = params.get('movie') || 'RRR';
+  const theater = params.get('theater') || 'PVR Cinemas';
+  const price = params.get('price') || '200';
+
+  // Set form values
+  document.getElementById('movieName').textContent = decodeURIComponent(movie);
+  document.getElementById('theaterName').textContent = theater;
+  document.getElementById('pricePerSeat').textContent = '₹' + price;
+  document.getElementById('movieInput').value = decodeURIComponent(movie);
+  document.getElementById('theaterInput').value = theater;
+  document.getElementById('priceInput').value = price;
+
+  // Generate seats
+  const seatsGrid = document.getElementById('seatsGrid');
+  for (let i = 0; i < rows * seatsPerRow; i++) {
+    const seat = document.createElement('div');
+    const seatNumber = i + 1;
+    const row = Math.floor(i / seatsPerRow) + 1;
+    const col = (i % seatsPerRow) + 1;
+    const seatCode = String.fromCharCode(64 + row) + col;
+
+    seat.className = 'seat';
+    seat.textContent = col;
+    seat.dataset.seatNumber = seatNumber;
+    seat.dataset.seatCode = seatCode;
+
+    if (bookedSeats.includes(seatNumber)) {
+      seat.classList.add('booked');
+      seat.style.pointerEvents = 'none';
+    } else {
+      seat.addEventListener('click', () => toggleSeat(seatNumber, seatCode, seat));
+    }
+
+    seatsGrid.appendChild(seat);
+  }
+
+  function toggleSeat(seatNumber, seatCode, element) {
+    if (selectedSeats.includes(seatCode)) {
+      selectedSeats = selectedSeats.filter(s => s !== seatCode);
+      element.classList.remove('selected');
+    } else {
+      selectedSeats.push(seatCode);
+      element.classList.add('selected');
+    }
+    updateSummary();
+  }
+
+  function updateSummary() {
+    document.getElementById('selectedCount').textContent = selectedSeats.length;
+    document.getElementById('totalPrice').textContent = selectedSeats.length * parseInt(price);
+    document.getElementById('seatsInput').value = selectedSeats.join(',');
+  }
+</script>
+</body>
+</html>
