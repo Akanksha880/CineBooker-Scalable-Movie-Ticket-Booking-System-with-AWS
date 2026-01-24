@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineBooker - Sign Up</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+  <h2>CineBooker</h2>
+  <p>Create your account</p>
+  
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div style="background: rgba(229, 9, 20, 0.2); border: 1px solid #e50914; color: #ff6b6b; padding: 12px; border-radius: 5px; margin-bottom: 20px; text-align: center; font-size: 14px;">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  
+  <form method="post">
+    <input type="text" name="name" placeholder="Full name" required>
+    <input type="email" name="email" placeholder="Email address (or use phone)">
+    <input type="tel" name="phone" placeholder="Phone number (or use email)">
+    <input type="password" name="password" placeholder="Password" required>
+    <small style="color: #ccc; display: block; margin-top: 10px; margin-bottom: 10px;">* You must provide either email or phone number to sign up</small>
+    <button type="submit">Sign Up</button>
+  </form>
+  <div class="form-link">
+    <span>Already have an account?</span>
+    <a href="/">Sign in</a>
+  </div>
+</div>
+</body>
+</html>
